@@ -1,6 +1,8 @@
 # Python-Gelbooru
 ## An async (and soon sync) wrapper for the Gelbooru API
 
+This library has been deprecated because of gelbooru changing their api responses. I might fix later.
+
 Everything starts with the `AsyncGelbooru` class. It can be used as a context manager.
 Here's an example before showing the full docs
 
@@ -104,18 +106,18 @@ Methods
     - Same as `async_download`, but is synchronous
 
 Magic Methods
-- `def str(self)`
+- `def __str__(self)`
     - Casting a `Post` to a string returns its `file_url`
 
 ### Comment
 - Attributes can be found in the docstrings
 
 Magic Methods
-- `def str(self)`
+- `def __str__(self)`
     - Casting a `Comment` to a string returns `[author]: [content]`
 
 ### Tag
 - Attributes can be found in the docstrings
 
-- `def str(self)`
+- `def __str__(self)`
     - Casting a `Tag` to a string returns the tag name
