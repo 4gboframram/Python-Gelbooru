@@ -67,9 +67,9 @@ class AsyncGelbooru:
                           height=post['height'],
                           id=post['id'], owner=post['owner'], rating=post['rating'], score=post['score'],
                           parent_id=post['parent_id'], tags=post['tags'].split(), title=post['title'],
-                          created_at=post['created_at'], md5=post['hash'], locked=bool(post['post_locked']),
+                          created_at=post['created_at'], md5=post['md5'], locked=bool(post['post_locked']),
                           file_name=post['image']
-                          ) for post in json)
+                          ) for post in json["post"])
 
     async def get_post(self, *, post_id: typing.Optional[int] = None,
                        md5: typing.Optional[str] = None) -> typing.Tuple[Post, ...]:
@@ -205,3 +205,36 @@ class AsyncGelbooru:
     async def close(self):
         await self.session.close()
 
+
+async def main():
+    async with AsyncGelbooru(api_key='4b34a0cf4d4f367d58c6a8dd8fa0b64387c1c16358481ab677e41639b6e4462e',
+                             user_id='839992') as gel:
+        yuyu = await gel.search_posts(['saigyouji yuyuko', 'webm', 'rating:explicit'], limit=100, random=True)
+        p = await gel.get_post(post_id=3633777)
+        comments = await gel.get_post_comments(p[0])
+        print([str(i) for i in comments])
+
+        tasks = [i.async_download(f"./arts/{i.id}") for i in yuyu]
+        await asyncio.gather(*tasks)
+
+
+async def main2():
+    async with AsyncGelbooru(api_key='4b34a0cf4d4f367d58c6a8dd8fa0b64387c1c16358481ab677e41639b6e4462e',
+                             user_id='839992') as gel:
+        tag = await gel.get_tag(tag_id=262)
+        print(tag)
+        print(tag.__repr__())
+
+
+async def main3():
+    async with AsyncGelbooru(api_key='4b34a0cf4d4f367d58c6a8dd8fa0b64387c1c16358481ab677e41639b6e4462e',
+                             user_id='839992') as gel:
+        p = await gel.search_tags(name_pattern="%yuyu%", limit=10, order_by='count', order='desc')
+        [print(i, i.id, i.count) for i in p]
+
+        print(p)
+        # [print(i) for i in p]
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
