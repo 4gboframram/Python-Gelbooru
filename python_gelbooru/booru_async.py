@@ -97,8 +97,6 @@ class AsyncGelbooru:
             url = self.url + f'&id={post_id}'
         url += '&s=post'
 
-        print(url)
-
         async with self.session.get(url) as response:
             post = (await response.json())['post'][0]
 
@@ -128,8 +126,8 @@ class AsyncGelbooru:
         async with self.session.get(url) as response:
             xml = await response.text()
             parsed = xmltodict.parse(xml)['comments'].get('comment')
-            parsed = parsed if type(parsed) == list else [parsed]
         if parsed:
+            parsed = parsed if type(parsed) == list else [parsed]
             return tuple(Comment(
                 data=comment,
                 created_at=datetime.strptime(comment['@created_at'], "%Y-%m-%d %H:%M"),
