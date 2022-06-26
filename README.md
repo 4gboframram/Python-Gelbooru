@@ -1,8 +1,6 @@
 # Python-Gelbooru
 ## An async (and soon sync) wrapper for the Gelbooru API
 
-This library has been deprecated because of gelbooru changing their api responses. I might fix later.
-
 Everything starts with the `AsyncGelbooru` class. It can be used as a context manager.
 Here's an example before showing the full docs
 

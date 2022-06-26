@@ -116,7 +116,7 @@ class AsyncGelbooru:
                           post_locked=bool(post["post_locked"]),
                           has_children=True if post["has_children"] == "true" else False)
         if md5:
-            if res[0].md5 != md5:
+            if res.md5 != md5:
                 return ()
             return res
         return res
