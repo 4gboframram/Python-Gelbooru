@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import os.path
 import typing
 from collections import namedtuple
@@ -19,35 +19,63 @@ class Post:
     Attributes
         data: dict - The dictionary that contains the full data of the post
 
-        source: str - The url for the source of the image
-
-        file_url: str - The url for file of the post
-
-        width: int - The width of the artwork
-
-        height: int - The height of the artwork
-
         id: int - The id of the post
 
-        owner: str - The name of the site that owns the artwork.
-
-        rating: str - The "safeness" rating of the post. Not to be confused with score
+        created_at: datetime - The time the artwork was posted
 
         score: int - The score of the post. Not to be confused with rating
 
-        parent_id: Union[str, int] - The id of the parent post
+        width: int - The height of the artwork
 
-        tags: List[str, ...] - The list of tags the post has
-
-        title: str - The title of the post,
-
-        created_at: str - A string that represents the time the artwork was posted
+        height: int - The width of the artwork
 
         md5: str - The md5 hash of the post
 
-        locked: bool - Whether the post is locked
+        directory: str
 
         file_name: str - The name of the file of the post
+
+        rating: str - The "safeness" rating of the post. Not to be confused with score
+
+        source: str - The url for the source of the image
+
+        change: int
+
+        owner: str - The name of the site that owns the artwork.
+
+        creator_id: int - The id of the author of the post
+
+        parent_id: Union[str, int] - The id of the parent post
+
+        sample: bool - Whether or not the post has a sample file
+
+        preview_height: int - The height of the preview file
+
+        preview_width: int - The width of the preview file
+
+        tags: List[str, ...] - The list of tags the post has
+
+        title: str - The title of the post
+
+        has_notes: bool - Whether or not the post has notes
+
+        has_comments: bool - Whether or not the post has comments
+
+        file_url: str - The url for file of the post
+
+        preview_url: str The url of the preview file of the post
+
+        sample_url: str - The url of the sample file of the post
+
+        sample_height: int - The height of the sample file
+
+        sample_width: int - The width of the sample file
+
+        status: str - The status of the post
+
+        post_locked: bool - Whether the post is locked
+
+        has_children: bool - Whether the post has children
 
     Properties:
         dimensions: ImageDimensions - A NamedTuple that contains the art dimensions data (the width and height)
@@ -61,22 +89,35 @@ class Post:
 
     """
     data: dict
-    source: str
-    file_url: str
+    id: int
+    created_at: datetime
+    score: int
     width: int
     height: int
-
-    id: int
-    owner: str
+    md5: str
+    directory: str
+    file_name: str
     rating: str
-    score: int
+    source: str
+    change: int
+    owner: str
+    creator_id: int
     parent_id: typing.Union[str, int]
+    sample: bool
+    preview_height: int
+    preview_width: int
     tags: typing.List[str]
     title: str
-    created_at: str
-    md5: str
-    locked: bool
-    file_name: str
+    has_notes: bool
+    has_comments: bool
+    file_url: str
+    preview_url: str
+    sample_url: str
+    sample_height: int
+    sample_width: int
+    status: str
+    post_locked: bool
+    has_children: bool
 
     @property
     def extension(self):
@@ -163,7 +204,7 @@ class Comment:
     Attributes
         data: dict - The dictionary that contains the original comment data
 
-        created_at: datetime.datetime - The time the comment was created at.
+        created_at: datetime - The time the comment was created at.
 
         post_id: int - The id of the post that the comment is on
 
@@ -179,7 +220,7 @@ class Comment:
         str(self) -> f"{self.author}: {self.content}"
     """
     data: dict
-    created_at: datetime.datetime
+    created_at: datetime
     post_id: int
     content: str
     author: str
@@ -213,7 +254,7 @@ class Tag:
         str(self) -> self.name
 
     """
-    id: int = field(hash=True, compare=True)  # Don't ask me why. My friend told me to
+    id: int = field(hash=True, compare=True)  # Don't ask me why. My friend told me to - ok i wont
     type: str
 
     name: str

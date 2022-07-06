@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+from datetime import datetime
 import typing
 
 import aiohttp
@@ -60,16 +60,23 @@ class AsyncGelbooru:
         if page_number:
             url += f'&pid={page_number}'
         async with self.session.get(url) as response:
-            json = await response.json()
+            json = (await response.json())['post']
 
-        print(url)
-        return tuple(Post(data=post, source=post['source'], file_url=post['file_url'], width=post['width'],
-                          height=post['height'],
-                          id=post['id'], owner=post['owner'], rating=post['rating'], score=post['score'],
-                          parent_id=post['parent_id'], tags=post['tags'].split(), title=post['title'],
-                          created_at=post['created_at'], md5=post['hash'], locked=bool(post['post_locked']),
-                          file_name=post['image']
-                          ) for post in json)
+        return list([Post(data=post, id=post["id"],
+                          created_at=datetime.strptime(post["created_at"], "%a %b %d %H:%M:%S %z %Y"),
+                          score=post["score"],
+                          width=post["width"], height=post["height"], md5=post["md5"], directory=post["directory"],
+                          file_name=post["image"], rating=post["rating"], source=post["source"], change=post["change"],
+                          owner=post["owner"], creator_id=post["creator_id"], parent_id=post["parent_id"],
+                          sample=bool(post),
+                          preview_height=post["preview_height"], preview_width=post["preview_width"], tags=post["tags"].split(" "),
+                          title=post["title"],
+                          has_notes=True if post["has_notes"] == "true" else False,
+                          has_comments=True if post["has_comments"] == "true" else False,
+                          file_url=post["file_url"], preview_url=post["preview_url"], sample_url=post["sample_url"],
+                          sample_height=post["sample_height"], sample_width=post["sample_width"], status=post["status"],
+                          post_locked=bool(post["post_locked"]),
+                          has_children=True if post["has_children"] == "true" else False) for post in json])
 
     async def get_post(self, *, post_id: typing.Optional[int] = None,
                        md5: typing.Optional[str] = None) -> typing.Tuple[Post, ...]:
@@ -91,17 +98,25 @@ class AsyncGelbooru:
         url += '&s=post'
 
         async with self.session.get(url) as response:
-            json = await response.json()
+            post = (await response.json())['post'][0]
 
-        res = tuple([Post(data=post, source=post['source'], file_url=post['file_url'], width=post['width'],
-                          height=post['height'], id=post['id'], owner=post['owner'], rating=post['rating'],
-                          score=post['score'], parent_id=post['parent_id'], tags=post['tags'].split(),
-                          title=post['title'], created_at=post['created_at'],
-                          md5=post['hash'], locked=bool(post['post_locked']),
-                          file_name=post['image']
-                          ) for post in json])
+        res = Post(data=post, id=post["id"],
+                          created_at=datetime.strptime(post["created_at"], "%a %b %d %H:%M:%S %z %Y"),
+                          score=post["score"],
+                          width=post["width"], height=post["height"], md5=post["md5"], directory=post["directory"],
+                          file_name=post["image"], rating=post["rating"], source=post["source"], change=post["change"],
+                          owner=post["owner"], creator_id=post["creator_id"], parent_id=post["parent_id"],
+                          sample=bool(post),
+                          preview_height=post["preview_height"], preview_width=post["preview_width"], tags=post["tags"].split(" "),
+                          title=post["title"],
+                          has_notes=True if post["has_notes"] == "true" else False,
+                          has_comments=True if post["has_comments"] == "true" else False,
+                          file_url=post["file_url"], preview_url=post["preview_url"], sample_url=post["sample_url"],
+                          sample_height=post["sample_height"], sample_width=post["sample_width"], status=post["status"],
+                          post_locked=bool(post["post_locked"]),
+                          has_children=True if post["has_children"] == "true" else False)
         if md5:
-            if res[0].md5 != md5:
+            if res.md5 != md5:
                 return ()
             return res
         return res
@@ -111,16 +126,16 @@ class AsyncGelbooru:
         async with self.session.get(url) as response:
             xml = await response.text()
             parsed = xmltodict.parse(xml)['comments'].get('comment')
-            # print(parsed)
         if parsed:
+            parsed = parsed if type(parsed) == list else [parsed]
             return tuple(Comment(
                 data=comment,
-                created_at=datetime.datetime.strptime(comment['@created_at'], "%Y-%m-%d %H:%M"),
+                created_at=datetime.strptime(comment['@created_at'], "%Y-%m-%d %H:%M"),
                 post_id=int(comment['@post_id']),
                 content=comment['@body'],
                 author=comment['@creator'],
                 comment_id=int(comment['@id']),
-                author_id=int(comment['@creator_id'])
+                author_id=int(comment['@creator_id']) if comment['@creator_id'] else 0
             ) for comment in parsed)
         else:
             return ()
@@ -171,11 +186,10 @@ class AsyncGelbooru:
             url += f"&{order=!s}"
 
         url += f"&{limit=}"
-        print(url)
         async with self.session.get(url) as response:
-            json = await response.json()
+            json = (await response.json())['tag']
 
-        return tuple([Tag(id=int(tag['id']), name=tag['tag'], type=tag['type'],
+        return tuple([Tag(id=int(tag['id']), name=tag['name'], type=tag['type'],
                           count=int(tag['count']), ambiguous=bool(int(tag['ambiguous'])),
                           ) for tag in json])
 
@@ -190,10 +204,9 @@ class AsyncGelbooru:
             url += f'&name={self._format_tags([name]).rstrip("+")}'
         else:
             url += f'&id={tag_id}'
-
         async with self.session.get(url) as response:
-            json = (await response.json())[0]
-            return Tag(id=int(json['id']), name=json['tag'], type=json['type'],
+            json = (await response.json())['tag'][0]
+            return Tag(id=int(json['id']), name=json['name'], type=json['type'],
                        count=int(json['count']), ambiguous=bool(int(json['ambiguous'])))
 
     async def __aenter__(self):
@@ -204,4 +217,3 @@ class AsyncGelbooru:
 
     async def close(self):
         await self.session.close()
-
